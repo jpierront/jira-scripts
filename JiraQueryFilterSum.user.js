@@ -15,7 +15,7 @@
 
     const CONFIG = {
         /* the script will run only on URLs that contain this identifier, ex: http://jira.mycompany.com */
-        URL_IDENTIFIER_FOR_JIRA: 'jira',
+        URL_IDENTIFIER_FOR_JIRA: 'closd.atlassian.net',
 
         RUN_EVERY_SECONDS : 10, //seconds
 
@@ -40,7 +40,7 @@
         HEADER_TITLE_PLACEHOLDER: '🟢'
     };
 
-    function getIntegerArray(arrayLength) {
+    function getNumericArray(arrayLength) {
         const array = [];
         for (let i = 0; i < arrayLength; i += 1) {
             array[i] = 0;
@@ -48,8 +48,8 @@
         return array;
     }
 
-    function isInteger(value) {
-        return /^\d+$/.test(value);
+    function isNumeric(value) {
+        return !isNaN(value) && !isNaN(parseFloat(value));
     }
 
     function appendSumRow(array, headerRow) {
@@ -70,17 +70,17 @@
         headerRow.parentElement.appendChild(newRow);
     }
 
-    function parseCellsForIntegers(cells, array) {
+    function parseCellsForNumerics(cells, array) {
         if (!cells || !cells.length) {
             return;
         }
 
         for (let k = 0; k < cells.length; k += 1) {
             const cell = cells[k];
-            if (cell.innerText && cell.innerText.length > 0 && isInteger(cell.innerText)) {
-                const effortInt = parseInt(cell.innerText, 10);
-                if (!isNaN(effortInt)) {
-                    array[k] += effortInt;
+            if (cell.innerText && cell.innerText.length > 0 && isNumeric(cell.innerText)) {
+                const effort = parseFloat(cell.innerText);
+                if (!isNaN(effort)) {
+                    array[k] += effort;
                 }
             }
         }
@@ -122,11 +122,11 @@
         let issueRows = gadget.querySelectorAll('tbody tr');
         if (issueRows.length > 0) {
             log('➡ sumNumericColumn');
-            let sumArray = getIntegerArray(headerRow.querySelectorAll('th').length);
+            let sumArray = getNumericArray(headerRow.querySelectorAll('th').length);
 
             for (let j = 0; j < issueRows.length; j += 1) {
                 const cells = issueRows[j].children;
-                parseCellsForIntegers(cells, sumArray);
+                parseCellsForNumerics(cells, sumArray);
             }
 
             if (sumArray.filter((x) => x > 0).length > 0) {
@@ -159,7 +159,7 @@
     function getSprintValue(sprints) {
         if (sprints && sprints.length && sprints.length > 0) {
             var sprintVerbose = sprints[sprints.length-1];
-            const regexp = /(\w*)=(.+?(?=[,\]]))/g;    //https://regex101.com/
+            const regexp = /(\w*)=(.+?(?=[,\]]))/g; //https://regex101.com/
             const array = [...sprintVerbose.matchAll(regexp)];
             if (array && array.length && array.length > 0) {
                 var nameElement = array.find(e => e.length && e.length == 3 && e[1] == 'name');
@@ -242,9 +242,9 @@
             var sum = 0;
             for(var i=0; i < badges.length; i += 1) {
                 const value = badges[i].textContent;
-                if (isInteger(value)) {
-                    const effortInt = parseInt(value, 10);
-                    sum = sum + effortInt;
+                if (isNumeric(value)) {
+                    const effort = parseFloat(value);
+                    sum = sum + effort;
                 }
             }
             var spanTotal = document.createElement('span');
